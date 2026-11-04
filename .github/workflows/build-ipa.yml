@@ -2,17 +2,33 @@ name: Build IPA
 on:
   push:
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        shell: bash
+        run: |
+          DEVELOPER_DIR=$(ls -d /Applications/Xcode*.app/Contents/Developer 2>/dev/null | sort | tail -n 1)
+          if [ -z "$DEVELOPER_DIR" ]; then
+            echo "No Xcode installation found in /Applications" >&2
+            exit 1
+          fi
+          sudo xcode-select -switch "$DEVELOPER_DIR"
+          xcodebuild -version
+
       - name: Install XcodeGen
         run: brew install xcodegen
+
       - name: Generate Xcode project
         run: xcodegen generate
+
       - name: Show Xcode version
         run: xcodebuild -version
+
       - name: Build (unsigned)
         run: |
           xcodebuild -project HSK2Quiz.xcodeproj -scheme HSK2Quiz \
@@ -20,11 +36,13 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             IPHONEOS_DEPLOYMENT_TARGET=12.0 build
+
       - name: Package IPA
         run: |
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/HSK2Quiz.app Payload/
           zip -qry HSK2Quiz.ipa Payload
+
       - uses: actions/upload-artifact@v4
         with:
           name: HSK2Quiz-ipa
