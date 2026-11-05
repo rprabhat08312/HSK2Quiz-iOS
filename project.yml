@@ -20,7 +20,21 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: Sources
+      - path: .
+        excludes:
+          - ".github"
+          - ".git"
+          - "Config"
+          - "Resources"
+          - "Sources"
+          - "README.md"
+          - "project.yml"
+          - ".gitignore"
+          - "LaunchScreen.storyboard"
+          - "Contents.json"
+          - "icon.png"
+          - "*.json"
+          - "*.tsv"
       - path: Resources
         excludes:
           - "evobc"
